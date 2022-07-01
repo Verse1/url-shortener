@@ -1,6 +1,12 @@
 package main
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"fmt"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/joho/godotenv"
+)
 
 func initRoutes(app *fiber.App) {
 
@@ -9,6 +15,13 @@ func initRoutes(app *fiber.App) {
 }
 
 func main() {
+
+	env := godotenv.Load()
+	if env != nil {
+		fmt.Println(env)
+	}
+
+
 	app := fiber.New()
 	initRoutes(app)
 	app.Listen(":3000")
