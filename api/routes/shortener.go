@@ -5,10 +5,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
 	"github.com/Verse1/url-shortener/api/db"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/internal/uuid"
+	"github.com/go-redis/redis/v8"
+	"github.com/asaskevich/govalidator"
 )
 
 type res struct { 
@@ -46,7 +47,7 @@ func shorten(c *fiber.Ctx) error {
 
 	val,err :=rdb.Get(db.Ctxt, c.IP()).Result()
 
-	if err == nil {
+	if err == redis.nil {
 		_=rdb.Set(db.Ctxt, c.IP(), os.Getenv("QUOTA"), 60*60*time.Second).Err()
 	} else{
 		val, _= rdb.Get(db.Ctxt, c.IP()).Result()
@@ -72,10 +73,10 @@ func shorten(c *fiber.Ctx) error {
 
 	var ID string
 
-	if body.Custom != "" {
+	if body.Shortened != "" {
 		ID = uuid.NewV4().String()[0:6]
 	} else {
-		ID = body.Custom
+		ID = body.Shortened
 	}
 
 	rdb2 := db.DBinit(0)
@@ -89,11 +90,11 @@ func shorten(c *fiber.Ctx) error {
 		})
 	}
 
-	if body.Expire==0 {
-		body.Expire = 24*time.Hour
+	if body.Expiration==0 {
+		body.Expiration = 24*time.Hour
 	}
 
-	err=rdb2.Set(db.Ctxt, ID, body.URL, body.Expire).Err()
+	err=rdb2.Set(db.Ctxt, ID, body.URL, body.Expiration).Err()
 
 	if err != nil {
 
@@ -102,6 +103,23 @@ func shorten(c *fiber.Ctx) error {
 		})
 	}
 
+	response:=res{
+		URL: body.URL,
+		Shortened: "",
+		Expiration: body.Expiration,
+		RateLimit: 20,
+		RateReset: 60*60*time.Second,
+	}
+
+
 	rdb.Decr(db.Ctxt, c.IP())
 
+	val,_=rdb.Get(db.Ctxt, c.IP()).Result()
+
+	response.RateLimit, _= strconv.Atoi(val)
+	ttl, _:= rdb.TTL(db.Ctxt, c.IP()).Result()
+	response.RateReset = ttl
+	response.Shortened = os.Getenv("BASE_URL") + "/" + ID
+
+	return c.Status(200).JSON(response)
 }
