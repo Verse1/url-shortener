@@ -1,8 +1,12 @@
 package routes
 
 import (
-	"time"
+	"os"
+	"strconv"
 	"strings"
+	"time"
+
+	"github.com/Verse1/url-shortener/api/db"
 )
 
 type res struct { 
@@ -34,16 +38,36 @@ func shorten(c *fiber.Ctx) error {
 		return err
 	}
 
-	if !govalidator.IsURL(body.URL) {
-		return c.Status(400).JSON(res{
-			URL: body.URL,
-			Shortened: "",
-			Expiration: 0,
-			RateLimit: 0,
-			RateReset: 0,
-		})
+
+	rdb := db.DBinit(1)
+	defer rdb.Close()
+
+	val,err :=rdb.Set(db.Ctxt, c.IP()).Result()
+
+	if err == nil {
+		_=rdb.Set(db.Ctxt, c.IP(), os.Getenv("QUOTA"), 60*60*time.Second).Err()
+	} else{
+		val, _= rdb.Get(db.Ctxt, c.IP()).Result()
+		val2, _:= strconv.Atoi(val)
+
+		if val2 <= 0 {
+			rdb.TTL(db.Ctxt, c.IP()).Result()
+			return c.Status(429).JSON(fiber.Map{
+				"error": "Rate limit exceeded",
+			})
+		}
+		val2--
+		_=rdb.Set(db.Ctxt, c.IP(), val2, 60*60*time.Second).Err()
+
 	}
 
-	body.URL = HTTPS(body.URL)
+
+	if !govalidator.IsURL(body.URL) {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "URL is not valid",
+			})
+	}
+
+	body.URL = HTTP(body.URL)
 
 }
