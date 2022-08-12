@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
-	"github.com/Verse1/url-shortener/api/routes"
+	"github.com/Verse1/url-shortener/routes"
 	"github.com/joho/godotenv"
 )
 
