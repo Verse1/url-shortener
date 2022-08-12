@@ -34,7 +34,7 @@ func HTTP(url string) string {
 }
 
 
-func shorten(c *fiber.Ctx) error {
+func Shorten(c *fiber.Ctx) error {
 
 	body := new(req)
 	if err := c.BodyParser(&body); err != nil {

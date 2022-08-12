@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func connect(c *fiber.Ctx) error {
+func Connect(c *fiber.Ctx) error {
 
 	url := c.Params("url")
 	rdb := db.DBinit(0)

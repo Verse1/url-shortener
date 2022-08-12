@@ -3,15 +3,14 @@ package main
 import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
-	// "github.com/gofiber/fiber/v2/middleware"
-	// "github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/Verse1/url-shortener/api/routes"
 	"github.com/joho/godotenv"
 )
 
 func initRoutes(app *fiber.App) {
 
-	app.get("/:url", routes.connect)
-	app.post("/api", routes.shorten)
+	app.Get("/:url", routes.Connect)
+	app.Post("/api", routes.Shorten)
 }
 
 func main() {
