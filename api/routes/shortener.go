@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
+	"github.com/gofiber/fiber/v2"
 	"github.com/Verse1/url-shortener/api/db"
 )
 
@@ -66,6 +66,9 @@ func shorten(c *fiber.Ctx) error {
 	}
 
 	body.URL = HTTP(body.URL)
+
+
+
 
 	rdb.Decr(db.Ctxt, c.IP())
 
