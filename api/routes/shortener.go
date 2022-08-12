@@ -5,8 +5,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"github.com/gofiber/fiber/v2"
+
 	"github.com/Verse1/url-shortener/api/db"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/internal/uuid"
 )
 
 type res struct { 
@@ -42,7 +44,7 @@ func shorten(c *fiber.Ctx) error {
 	rdb := db.DBinit(1)
 	defer rdb.Close()
 
-	val,err :=rdb.Set(db.Ctxt, c.IP()).Result()
+	val,err :=rdb.Get(db.Ctxt, c.IP()).Result()
 
 	if err == nil {
 		_=rdb.Set(db.Ctxt, c.IP(), os.Getenv("QUOTA"), 60*60*time.Second).Err()
@@ -68,7 +70,37 @@ func shorten(c *fiber.Ctx) error {
 	body.URL = HTTP(body.URL)
 
 
+	var ID string
 
+	if body.Custom != "" {
+		ID = uuid.NewV4().String()[0:6]
+	} else {
+		ID = body.Custom
+	}
+
+	rdb2 := db.DBinit(0)
+	defer rdb2.Close()
+
+	val, _= rdb2.Get(db.Ctxt, ID).Result()
+
+	if val != "" {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Shortened URL already exists",
+		})
+	}
+
+	if body.Expire==0 {
+		body.Expire = 24*time.Hour
+	}
+
+	err=rdb2.Set(db.Ctxt, ID, body.URL, body.Expire).Err()
+
+	if err != nil {
+
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Internal server error",
+		})
+	}
 
 	rdb.Decr(db.Ctxt, c.IP())
 
