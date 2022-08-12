@@ -56,9 +56,6 @@ func shorten(c *fiber.Ctx) error {
 				"error": "Rate limit exceeded",
 			})
 		}
-		val2--
-		_=rdb.Set(db.Ctxt, c.IP(), val2, 60*60*time.Second).Err()
-
 	}
 
 
@@ -69,5 +66,7 @@ func shorten(c *fiber.Ctx) error {
 	}
 
 	body.URL = HTTP(body.URL)
+
+	rdb.Decr(db.Ctxt, c.IP())
 
 }
