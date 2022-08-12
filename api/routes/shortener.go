@@ -7,7 +7,7 @@ import (
 	"time"
 	"github.com/Verse1/url-shortener/api/db"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/internal/uuid"
+	"github.com/google/uuid"
 	"github.com/go-redis/redis/v8"
 	"github.com/asaskevich/govalidator"
 )
@@ -47,7 +47,7 @@ func shorten(c *fiber.Ctx) error {
 
 	val,err :=rdb.Get(db.Ctxt, c.IP()).Result()
 
-	if err == redis.nil {
+	if err == redis.Nil {
 		_=rdb.Set(db.Ctxt, c.IP(), os.Getenv("QUOTA"), 60*60*time.Second).Err()
 	} else{
 		val, _= rdb.Get(db.Ctxt, c.IP()).Result()
@@ -74,7 +74,7 @@ func shorten(c *fiber.Ctx) error {
 	var ID string
 
 	if body.Shortened != "" {
-		ID = uuid.NewV4().String()[0:6]
+		ID = uuid.New().String()[0:6]
 	} else {
 		ID = body.Shortened
 	}
