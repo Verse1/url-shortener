@@ -3,13 +3,15 @@ package db
 import (
 	"github.com/go-redis/redis/v8"
 	"context"
+	"os"
 )
 
-var ctxt=context.Background()
+var Ctxt=context.Background()
 
 func DBinit(db int) *redis.Client {
 	rdb := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
+		Addr: os.Getenv("REDIS_HOST"),
+		Password: os.Getenv("REDIS_PASSWORD"),
 		DB: db,
 	})
 	return rdb

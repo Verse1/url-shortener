@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"github.com/Verse1/url-shortener/db"
+	"github.com/Verse1/url-shortener/api/db"
 	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
 )
@@ -12,8 +12,8 @@ func connect(c *fiber.Ctx) error {
 	rdb := db.DBinit(0)
 	defer rdb.Close()
 
-	rdb.get(db.Ctxt, url)
-	val, err := rdb.Get(db.ctxt, url).Result()
+	// rdb.get(db.Ctx, url)
+	val, err := rdb.Get(db.Ctxt, url).Result()
 
 	
 	if err != nil || err==redis.Nil {
@@ -21,5 +21,10 @@ func connect(c *fiber.Ctx) error {
 			"error": "Not found",
 		})
 	}
+
+	increment:=db.DBinit(1)
+	defer increment.Close()
+	_=increment.Incr(db.Ctxt, "count")
+
 	return c.Redirect(val, 301)
 }
